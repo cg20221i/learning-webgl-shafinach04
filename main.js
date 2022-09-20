@@ -4,10 +4,10 @@ function main() {
 
     //A(0.5, 0.5) B(0.0, 0.0) C(-0.5, 0.5) D(0.0, 1.0)
     var vertices = [
-        0.5, 0.5, 
-        0.0, 0.0, 
-        -0.5, 0.5,
-        0.0, 1.0
+        0.5, 0.5, 1.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 1.0, 0.0,
+        -0.5, 0.5, 0.0, 0.0, 1.0,
+        0.0, 1.0, 0.0, 0.0, 0.0
     ];
 
     // Create a linked-list for storing vertices data to GPU realm
@@ -19,7 +19,9 @@ function main() {
     // VERTEX SHADER
     var vertexShaderCode = `
         attribute vec2 aPosition;
+        attribute vec3 aColor;
         uniform float uTheta;
+        varying vec3 vColor;
         void main () {
             gl_PointSize = 15.0;
             vec2 position = vec2(aPosition);
@@ -27,6 +29,7 @@ function main() {
             position.y = sin(uTheta) *aPosition.y + cos(uTheta) *aPosition.x;
             gl_Position = vec4(position, 0.0, 1.0);     // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
+            vColor = aColor;
         }
     `;
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -36,8 +39,9 @@ function main() {
     // FRAGMENT SHADER
     var fragmentShaderCode = `
         precision mediump float;
+        varying vec3 vColor;
         void main() {
-            gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);
+            gl_FragColor = vec4(vColor, 1.0);
             // Blue = R:0, G:0, B:1, A:1
             // gl_FragColor is the final destination for storing
             //  color data for the rendered fragment
@@ -65,8 +69,13 @@ function main() {
 
     //Teach GPU how to collect the positional values from ARRAY_BUFFER for each vertex being processed
     var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
-    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 0);
     gl.enableVertexAttribArray(aPosition);
+    
+    var aColor = gl.getAttribLocation(shaderProgram, "aColor");
+
+    gl.vertexAttribPointer(aColor, 3, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 2 * Float32Array.BYTES_PER_ELEMENT);
+    gl.enableVertexAttribArray(aColor);
 
     function render(){
             gl.clearColor(1.0, 0.75,   0.79,  1.0);
