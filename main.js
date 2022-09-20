@@ -4,10 +4,10 @@ function main() {
 
     //A(0.5, 0.5) B(0.0, 0.0) C(-0.5, 0.5) D(0.0, 1.0)
     var vertices = [
-        0.5, 0.5, 1.0, 0.0, 0.0,
-        0.0, 0.0, 0.0, 1.0, 0.0,
-        -0.5, 0.5, 0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 0.0, 0.0
+        0.5, 0.0, 1.0, 0.0, 0.0,
+        0.0, -0.5, 0.0, 1.0, 0.0,
+        -0.5, 0.0, 0.0, 0.0, 1.0,
+        0.0, 0.5, 0.0, 0.0, 0.0
     ];
 
     // Create a linked-list for storing vertices data to GPU realm
@@ -62,7 +62,14 @@ function main() {
     gl.useProgram(shaderProgram);
 
     //Local variables
+    var isAnimated = false;
     var theta = 0.0;
+
+    //Local functions
+    function onMouseClick(event){
+        isAnimated = !isAnimated;
+    }
+    document.addEventListener("click", onMouseClick);
 
     //All the qualifiers needed by shaders
     var uTheta = gl.getUniformLocation(shaderProgram, "uTheta");
@@ -82,8 +89,10 @@ function main() {
                 //Red, Green, Blue, Alpha
             gl.clear(gl.COLOR_BUFFER_BIT);
             
-            theta += 0.01;
-            gl.uniform1f(uTheta, theta);
+            if(isAnimated){
+                theta += 0.01;
+                gl.uniform1f(uTheta, theta);
+            }
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
             requestAnimationFrame(render);
         
