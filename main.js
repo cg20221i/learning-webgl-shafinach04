@@ -21,13 +21,15 @@ function main() {
         attribute vec2 aPosition;
         attribute vec3 aColor;
         uniform float uTheta;
+        uniform float uDX;
+        uniform float uDY;
         varying vec3 vColor;
         void main () {
             gl_PointSize = 15.0;
             vec2 position = vec2(aPosition);
             position.x = -sin(uTheta) *aPosition.x + cos(uTheta) *aPosition.y;
             position.y = sin(uTheta) *aPosition.y + cos(uTheta) *aPosition.x;
-            gl_Position = vec4(position, 0.0, 1.0);     // gl_Position is the final destination for storing
+            gl_Position = vec4(position.X, 0.0, 1.0);     // gl_Position is the final destination for storing
             //  positional data for the rendered vertex
             vColor = aColor;
         }
@@ -64,15 +66,47 @@ function main() {
     //Local variables
     var isAnimated = false;
     var theta = 0.0;
+    var direction = "";
+    var dX = 0.0;
+    var dY = 0.0;
 
     //Local functions
     function onMouseClick(event){
         isAnimated = !isAnimated;
     }
+    function onKeyDown(event){
+        if(event.keyCode == 32) {isAnimated = true;}
+        switch(event.keyCode){
+            case 38: //up
+                direction = "up";
+                break;
+            case 40: //down
+                direction = "down";
+                break;
+            case 39: //right
+                direction = "right";
+                break;
+            case 37: //left
+                direction = "left";
+                break;
+            default:
+                break;
+        }
+    }
+        
+    function onKeyup(event){
+        if(event.keyCode ==32) {isAnimated = false;}
+    }
+
     document.addEventListener("click", onMouseClick);
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyup);
 
     //All the qualifiers needed by shaders
     var uTheta = gl.getUniformLocation(shaderProgram, "uTheta");
+    var uDX = gl.getUniformLocation(shaderProgram, "uDX");
+    var uDY = gl.getUniformLocation(shaderProgram, "uDY");
+
 
     //Teach GPU how to collect the positional values from ARRAY_BUFFER for each vertex being processed
     var aPosition = gl.getAttribLocation(shaderProgram, "aPosition");
@@ -92,6 +126,26 @@ function main() {
             if(isAnimated){
                 theta += 0.01;
                 gl.uniform1f(uTheta, theta);
+            }
+            switch (direction){
+                case "up":
+                    dY -= 0.1;
+                    gl.uniform1f(uDY, dY);
+                    break;
+                case "down":
+                    dY += 0.1;
+                    gl.uniform1f(uDY, dY);
+                    break;
+                case "right":
+                    dX += 0.1;
+                    gl.uniform1f(uDX, dX);
+                    break;
+                case "left":
+                    dX -= 0.11;
+                    gl.uniform1f(uDX, dX);
+                    break;
+                default:
+                    break;
             }
             gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
             requestAnimationFrame(render);
